@@ -2,11 +2,16 @@ const express = require('express')
 const pug = require('pug')
 const app = express()
 
-app.use( express.json())
+const {Client} = require('pg');
 
-const client = require('pg').Client;
+app.use(express.json())
 
-const db = new client({
+app.use( (req, res, next) => {
+  res.append('COCO', 'Coucou');
+  next()
+})
+
+const db = new Client({
   connectionString: 'postgres://postgres:changeme@localhost:5432/tododb'
 });
 
@@ -19,15 +24,29 @@ db.connect( (err) => {
 
 app.set('view engine', 'pug')
 
+// app.get('/', (req, res) => {
+//   res.render('index', {
+//       title: "Boujour promo A",
+//       categories: [
+//         {name: 'A faire'},
+//         {name: 'En cours'},
+//         {name: 'Fait'}
+//       ]
+//     })
+// })
+
 app.get('/', (req, res) => {
   db.query('SELECT * FROM categories').then( (result) => {
     res.render('index', {
+      title: 'COucou la propmo !',
       categories: result.rows
     })
   }).catch( err => {
     console.log('err : ', err)
+    res.send(err);
   })
 })
+
 
 app.get('/categories', (req, res) => {
   db.query('SELECT * FROM categories')
@@ -49,10 +68,16 @@ app.get('/users', (req, res) => {
 
 app.post('/categories', (req, res) => {
   console.log('req.body : ', req.body);
-  
   const {name} = req.body;
-
   db.query(`INSERT INTO categories(id, name) VALUES (DEFAULT, '${name}')`)
+    .then(result => res.send(result))
+    .catch(err => console.log(err))
+})
+
+app.post('/users', (req, res) => {
+  console.log('req.body : ', req.body);
+  const { lastname, firstname } = req.body;
+  db.query(`INSERT INTO users(id, firstname, lastname) VALUES (DEFAULT, '${firstname}', '${lastname}')`)
     .then(result => res.send(result))
     .catch(err => console.log(err))
 })

@@ -3,7 +3,7 @@ html
     title Mon site - Home
   body
     h1 
-      i Ceci est la HOME de mon site
+      i #{title}
     ul
-      each val in categories  
-        li(class="coucou")= val.name
+      each val in categories
+        li= val.name
